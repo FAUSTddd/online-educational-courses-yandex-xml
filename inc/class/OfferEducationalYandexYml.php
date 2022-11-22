@@ -121,11 +121,14 @@ class OfferEducationalYandexYml
     }
 
     /**
-     * @param string $set_ids
+     * @param array $set_ids
      */
     public function setSetIds($set_ids)
     {
-        $this->set_ids = $set_ids;
+        $this->set_ids = '';
+        if ($set_ids && !empty($set_ids)){
+            $this->set_ids = implode(',', $set_ids);
+        }
     }
 
     /**
@@ -189,18 +192,24 @@ class OfferEducationalYandexYml
      */
     public function setDescription($description)
     {
-        $this->description = $description;
+        $shotcodes_tags = array( 'vc_row', 'vc_column', 'vc_column', 'vc_column_text', 'vc_message', 'vc_custom_heading', 'vc_single_image', 'quform_popup', 'button', 'quform' );
+        $desc = preg_replace( '/\[(\/?(' . implode( '|', $shotcodes_tags ) . ').*?(?=\]))\]/', ' ', $description );
+        $desc = str_replace('&nbsp;', '', $desc);
+
+        $this->description = $desc;
     }
 
     public function generateFromWooCommerceProduct($Product)
     {
+        require_once(explode("wp-content", __FILE__)[0] . "wp-load.php");
         $this->setId($Product->get_id());
         $this->setName($Product->get_name());
         $this->setUrl($Product->get_permalink());
         $this->setCategoryId(1000);
         $this->setSetIds($Product->get_category_ids());
         $this->setPrice($Product->get_price());
-        $this->setDescription($Product->get_description());
+        $this->setDescription(strip_tags($Product->get_description()));
+        $this->setPicture(wp_get_attachment_url($Product->get_image_id()));
     }
 
 
